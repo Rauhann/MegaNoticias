@@ -6,6 +6,7 @@ use App\Helpers\Traduct;
 use App\Models\Previsao;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
+use Illuminate\Support\Facades\DB;
 
 class ForecastService
 {
@@ -62,16 +63,24 @@ class ForecastService
 
             $check = $this->checkIfForecastExists($code);
 
+
             if ($check) {
+                $finalForecast[] = [[
+                    'nome' => $check->nome,
+                    'data' => $check->data,
+                    'temperatura_min' => $check->temperatura_min,
+                    'temperatura_max' => $check->temperatura_max,
+                ]];
                 continue;
             }
 
             $response = $this->client->request('GET', 'http://servicos.cptec.inpe.br/XML/cidade/' . $code . '/previsao.xml');
-            $xml = simplexml_load_string($response->getBody()->getContents());
-            $json = json_encode($xml);
-            $array = json_decode($json, TRUE);
 
-            $finalForecast[] = $this->formatToSave($array, $code);
+            if (200 == $response->getStatusCode()) {
+                $stringResult = simplexml_load_string($response->getBody()->getContents());
+                $array = $this->xmlToArray($stringResult);
+                $finalForecast[] = $this->formatToSave($array, $code);
+            }
         }
 
         return $finalForecast;
@@ -80,9 +89,8 @@ class ForecastService
     // Verifica se existe no banco em um intervalo de tempo, para não fazer requisições desnecessárias
     private function checkIfForecastExists(int $code)
     {
-        return $this->forecast->where('codigo', $code)
-            ->whereDate('expira_em', '<', (Carbon::now())->format('Y-m-d'))
-            ->whereTime('expira_em', '<', (Carbon::now())->format('H:i:s'))
+        return DB::table('previsoes')->where('codigo', $code)
+            ->whereDate('expira_em', '>', (Carbon::now())->format('Y-m-d'))
             ->first();
     }
 
@@ -96,7 +104,8 @@ class ForecastService
                 'data' => $this->traductDays(date('l', strtotime($item['dia']))),
                 'codigo' => $code,
                 'temperatura_min' => $item['minima'],
-                'temperatura_max' => $item['maxima']
+                'temperatura_max' => $item['maxima'],
+                'expira_em' => (Carbon::now()->addDay())->format('Y-m-d')
             ];
 
             $this->forecast->create($save);
@@ -104,5 +113,13 @@ class ForecastService
         }
 
         return $items;
+    }
+
+    // Transforma a string do xml para array
+    private function xmlToArray($xml)
+    {
+        $json = json_encode($xml);
+
+        return json_decode($json, TRUE);
     }
 }
