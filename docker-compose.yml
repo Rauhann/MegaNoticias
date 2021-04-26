@@ -1,0 +1,47 @@
+version: '3.7'
+
+volumes:
+  # MySQL Data
+  mega-mysql-data:
+    driver: local
+
+services:
+  # MySQL (5.7)
+  db:
+    image: mysql:5.7
+    container_name: mega-mysql
+    volumes:
+      - mega-mysql-data:/var/lib/mysql
+    ports:
+      - 13306:3306
+    environment:
+      - MYSQL_DATABASE=mega
+      - MYSQL_USER=mega
+      - MYSQL_PASSWORD=mega
+      - MYSQL_ROOT_PASSWORD=mega
+
+  # PHP (with Nginx)
+  app:
+    image: ambientum/php:7.3-nginx
+    container_name: mega-app
+    volumes:
+      - .:/var/www/app
+      - ./nginx/99_xdebug.ini:/etc/php7/conf.d/99_xdebug.ini
+      - ./nginx/99_overrides.ini:/etc/php7/conf.d/99_overrides.ini
+    environment:
+      - XDEBUG_ENABLED=true
+      - DB_QUERY_LOG_ENABLED=true
+    ports:
+      - 8000:8080
+    links:
+      - db
+
+  # Laravel Queues
+  queue:
+    image: ambientum/php:7.3
+    container_name: mega-queue
+    command: php artisan queue:listen
+    volumes:
+      - .:/var/www/app
+    links:
+      - db
