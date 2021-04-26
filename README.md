@@ -18,6 +18,6 @@
 
 6. Executar o comando 'make seed' para popular o banco com dados de teste.
 
-7. Abra um terminal em que não esteja dentro do container e execute o comando 'make serve' para simular o ambiente front. Vai gerar um link no terminal, é através dele que se acessa a interface.
+7. Abra outro terminal dentro do projeto e execute o comando 'make php', logo em seguida, execute o comando 'make serve' para simular o ambiente front. Vai gerar um link no terminal, é através dele que se acessa a interface (Starting Laravel development server).
 
 8. Para acessar o banco de dados, bastar abrir outra aba do terminal e executar o comando 'make db'.

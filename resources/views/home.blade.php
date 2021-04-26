@@ -36,6 +36,5 @@
 @section('js')
 
     <script src="../../js/cptec.js"></script>
-    <script src="../../js/register.js"></script>
 
 @endsection

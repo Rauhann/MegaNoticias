@@ -50,6 +50,7 @@
     <script src="../../js/bootstrap.js"></script>
     <script src="../../js/axios.min.js"></script>
     <script src="../../js/sweetalert2.all.min.js"></script>
+    <script src="../../js/register.js"></script>
 
     @yield('js')
 
