@@ -7,7 +7,7 @@ down:
 php:
 	docker exec -it mega-app bash
 db:
-	mysql -u mega -p'mega' mega --port 13306 -h 127.0.0.1
+	docker exec -it mega-mysql bash -c "mysql -u mega -p'mega' mega"
 env:
 	cp .env.example .env
 migrate:
